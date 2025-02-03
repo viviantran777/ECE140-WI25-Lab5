@@ -112,7 +112,8 @@ async def get_table_data(table_name: str):
 # Template routes for lab
 @app.get("/assignment1")
 async def assignment1():
-    # Basic JOIN query
+    customer_spending = "SELECT * FROM total_amount"
+
     return {"message": "Not implemented"}
 
 @app.get("/assignment2")
