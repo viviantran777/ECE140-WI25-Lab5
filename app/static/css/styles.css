@@ -1,0 +1,79 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1400px;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1rem;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e7f1ff;
+    color: #0c63e4;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0, 0, 0, 0.125);
+}
+
+.table-responsive {
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.assignment-widget {
+    height: 100%;
+}
+
+.card-header p {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Loading state */
+.loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.loading::after {
+    content: "Loading...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #6c757d;
+} 
