@@ -112,9 +112,23 @@ async def get_table_data(table_name: str):
 # Template routes for lab
 @app.get("/assignment1")
 async def assignment1():
-    customer_spending = "SELECT * FROM total_amount"
+    query = """
+    SELECT
+    c.name AS Customer_name,
+    c.email AS Customer_email,
+    o.price AS Total_spent
+    FROM
+    customers c
+    JOIN
+    orders o ON c.customer_id = o.customer_id
+    WHEN 
+    o.status = "Completed"
+    GROUPED BY
+    c.customer_id, c.name, c.email
+    ORDER BY
+    total_spent DESC
+    """
 
-    return {"message": "Not implemented"}
 
 @app.get("/assignment2")
 async def assignment2():
