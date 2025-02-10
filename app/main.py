@@ -114,25 +114,62 @@ async def get_table_data(table_name: str):
 async def assignment1():
     query = """
     SELECT
-    c.name AS Customer_name,
-    c.email AS Customer_email,
-    o.price AS Total_spent
-    FROM
-    customers c
-    JOIN
-    orders o ON c.customer_id = o.customer_id
-    WHEN 
-    o.status = "Completed"
-    GROUPED BY
-    c.customer_id, c.name, c.email
-    ORDER BY
-    total_spent DESC
+        c.name AS customer_name,
+        c.email AS customer_email,
+        SUM(o.total_amount) AS total_spent
+    FROM 
+        customers c
+    JOIN 
+        orders o 
+    ON 
+        c.customer_id = o.customer_id
+    WHERE 
+        o.status='Completed'
+    GROUP BY
+        c.customer_id, c.name, c.email
+    ORDER BY 
+        total_spent DESC;
     """
+    try:
+        # Get a database connection
+        with get_db_connection() as connection:
+            if connection is None:
+                raise HTTPException(status_code=500, detail="Could not connect to database")
+            
+            # Create a cursor
+            cursor = connection.cursor(dictionary=True)
+            
+            # Execute the query
+            cursor.execute(query)
+            
+            # Fetch the results
+            results = cursor.fetchall()
+            
+            # Return the results as JSON
+            return {"data": results}
+    
+    except Error as e:
+        # Handle database errors
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        # Handle unexpected errors
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
 @app.get("/assignment2")
 async def assignment2():
-    # GROUP BY query
+    # Implement a query to calculate sales metrics by product category, including:
+
+    # Category name
+    # Total number of orders
+    # Total revenue
+    # Average order value
+    query = """
+    SELECT
+        p.category AS category_name
+
+
+    """
     return {"message": "Not implemented"}
 
 @app.get("/assignment3")
