@@ -119,7 +119,7 @@ async def assignment1():
         SUM(o.total_amount) AS total_spent
     FROM 
         customers c
-    JOIN 
+    LEFT JOIN 
         orders o 
     ON 
         c.customer_id = o.customer_id
@@ -166,18 +166,172 @@ async def assignment2():
     # Average order value
     query = """
     SELECT
-        p.category AS category_name
-
-
+        p.category AS category_name,
+        COUNT(DISTINCT oi.order_id) AS total_orders,
+        COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS total_revenue,
+        CASE 
+            WHEN COUNT(DISTINCT oi.order_id) = 0 THEN 0
+            ELSE ROUND(SUM(oi.quantity * oi.unit_price) / COUNT(DISTINCT oi.order_id), 2)
+        END AS average_order_value
+    FROM 
+        products p
+    LEFT JOIN 
+        order_items oi
+    ON 
+        p.product_id = oi.product_id
+    GROUP BY
+        p.category
+    ORDER BY
+        total_revenue DESC;
     """
-    return {"message": "Not implemented"}
+    try:
+        connection = get_db_connection()
+        if connection is None:
+            raise HTTPException(status_code=500, detail="can not get to database")
+            #curser creation for
+        cursor = connection.cursor(dictionary=True)
+            #Exectue query
+        cursor.execute(query)
+        # geting the results
+        results = cursor.fetchall()
+        #stopping connection
+        cursor.close()
+        connection.close()
+        return{"data": results}
+    
+    except Error as e:
+        raise HTTPException(status_code =500, detail = f"{str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{str(e)}")
+    
 
 @app.get("/assignment3")
 async def assignment3():
-    # Complex JOIN with GROUP BY
-    return {"message": "Not implemented"}
+    #Implement a query to analyze customer purchasing patterns by membership level and city, showing:
+        #Membership level
+        #City
+        #Total orders
+        #Average order value
+        #Number of customers
+        #Orders per customer
+    query = """
+    SELECT
+        c.membership_level,
+        c.city,
+        COUNT(o.order_id) AS total_orders,
+        ROUND(SUM(o.total_amount) / NULLIF(COUNT(o.order_id), 0), 2) AS average_order_value,
+        COUNT(DISTINCT c.customer_id) AS number_of_customers,
+        CASE 
+            WHEN COUNT(DISTINCT c.customer_id) = 0 THEN 0
+            ELSE COUNT(o.order_id) / COUNT(DISTINCT c.customer_id)
+        END AS orders_per_customer
+    FROM 
+        customers c
+    LEFT JOIN
+        orders o
+    ON 
+        c.customer_id = o.customer_id
+    GROUP BY
+        c.membership_level, c.city
+    ORDER BY
+        c.membership_level, c.city;
+    """
+    try:
+        connection = get_db_connection()
+        if connection is None:
+            raise HTTPException(status_code=500, detail="can not get database")
+        #creating the curser
+        cursor = connection.cursor(dictionary=True)
+        #getting to the query
+        cursor.execute(query)
+        #getting all
+        results = cursor.fetchall()
+        #closing everything
+        cursor.close()
+        connection.close()
+        return{"details": results}
+    except Error as e:
+        raise HTTPException(status_code=500,detail=f"{str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{str(e)}") 
+
 
 @app.get("/assignment4")
 async def assignment4():
-    # Subquery
-    return {"message": "Not implemented"} 
+    # SImplement a query to find products that are performing above average in their category, showing:
+
+        #Product name
+        #Category
+        #Total sales
+        #Category average
+        #Percentage above average
+    query = """
+    WITH CategoryAverages AS (
+        SELECT 
+            p.category,
+            AVG(SUM(oi.quantity * oi.unit_price)) OVER (PARTITION BY p.category) AS category_average
+        FROM 
+            products p
+        JOIN 
+            order_items oi
+        ON 
+            p.product_id = oi.product_id
+        GROUP BY 
+            p.product_id, p.category
+    ),
+    ProductSales AS (
+        SELECT 
+            p.name AS product_name,
+            p.category,
+            SUM(oi.quantity * oi.unit_price) AS total_sales
+        FROM 
+            products p
+        JOIN 
+            order_items oi
+        ON 
+            p.product_id = oi.product_id
+        GROUP BY 
+            p.product_id, p.name, p.category
+    )
+    SELECT 
+        ps.product_name,
+        ps.category,
+        ps.total_sales,
+        ca.category_average,
+        ROUND(((ps.total_sales - ca.category_average) / ca.category_average) * 100, 2) AS percentage_above_average
+    FROM 
+        ProductSales ps
+    JOIN 
+        CategoryAverages ca
+    ON 
+        ps.category = ca.category
+    WHERE 
+        ps.total_sales > ca.category_average;
+    """
+    
+    try:
+        # Get a database connection
+        connection = get_db_connection()
+        if connection is None:
+            raise HTTPException(status_code=500, detail="Could not connect to the database")
+        
+        # Create a cursor
+        cursor = connection.cursor(dictionary=True)
+        
+        # Execute the query
+        cursor.execute(query)
+        
+        # Fetch all results
+        results = cursor.fetchall()
+        
+        # Close the connection
+        cursor.close()
+        connection.close()
+        
+        # Return the results as JSON
+        return {"data": results}
+    
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
